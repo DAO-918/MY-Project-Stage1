@@ -1,8 +1,11 @@
 package com.servlet;
 
 import com.dao.GoodsDao;
-import com.dao.GoodsDaoImpl;
+import com.dao.impl.GoodsDaoImpl;
 import com.domain.Goods;
+import com.domain.PageBean;
+import com.service.GoodsInfoService;
+import com.service.impl.GoodsInfoServiceImpl;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -17,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @WebServlet("/goods_Info")
@@ -39,6 +43,10 @@ public class Goods_Info extends HttpServlet {
             this.Edit(request, response);
         } else if (method.equals("Remove")) {
             this.Remove(request, response);
+        } else if (method.equals("ShowListMVC")){
+            this.ShowListMVC(request,response);
+        } else if (method.equals("Search")){
+            this.Search(request,response);
         }
 
     }
@@ -52,7 +60,7 @@ public class Goods_Info extends HttpServlet {
         List<Goods> list = goodsDao.showGoods();
         System.out.println("ShowList成功收到list：list.size："+list.size());
         request.setAttribute("goods_list", list);
-        request.getRequestDispatcher("/goods/goods_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/goods/goods_list_old.jsp").forward(request, response);
     }
 
     private Goods getGoods(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
@@ -152,8 +160,6 @@ public class Goods_Info extends HttpServlet {
                     //没有修改则使用隐藏域的值
                     goods.setG_goods_pic(value);
                 }*/
-
-
             }
         }
         return goods;
@@ -169,7 +175,8 @@ public class Goods_Info extends HttpServlet {
         System.out.println("即将添加的商品：" + goods);
         int result = goodsDao.addGoodsInfo(goods);
         if (result > 0) {
-            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            //response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowListMVC");
             //request.getRequestDispatcher("/goods_Info?method=ShowList").forward(request,response);
         } else {
             request.setAttribute("add_error","添加失败");
@@ -192,7 +199,8 @@ public class Goods_Info extends HttpServlet {
         GoodsDao goodsDao = new GoodsDaoImpl();
         int result = goodsDao.editGoodsInfo(goods);
         if (result>0){
-            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            //response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowListMVC");
             //request.getRequestDispatcher("/goods_Info?method=ShowList").forward(request,response);
         }else {
             request.setAttribute("edit_error","修改失败");
@@ -206,12 +214,79 @@ public class Goods_Info extends HttpServlet {
         GoodsDao goodsDao = new GoodsDaoImpl();
         int result = goodsDao.delGoodsInfo(str_arr);
         if (result>0){
-            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            //response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowList");
+            response.sendRedirect(request.getContextPath()+"/goods_Info?method=ShowListMVC");
             //request.getRequestDispatcher("/goods_Info?method=ShowList").forward(request,response);
         }else {
             request.setAttribute("del_error","删除失败");
             response.sendRedirect(request.getContextPath()+"/goods/goods_list.jsp");
         }
+    }
+
+    private void ShowListMVC(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //getParameter获取到的是字符串不会自动转换成数值
+        //故传递给findByPage方法时要进行转型，使用数值方便计算
+        //当前页码
+        String currentPage = request.getParameter("currentPage");
+        //每页显示的行数
+        String rows = request.getParameter("rows");
+        //设置默认的当前页码
+        if (currentPage==null || "".equals(currentPage) || currentPage.equals("0")){
+            currentPage = "1";
+        }
+        //设置默认显示的行数
+        if (rows==null || "".equals(rows)){
+            rows = "4";
+        }
+
+        //获取分页对象
+        GoodsInfoService goodsService = new GoodsInfoServiceImpl();
+        PageBean<Goods> goods_page = goodsService.findByPage(Integer.parseInt(currentPage),Integer.parseInt(rows));
+        //放入请求中
+        request.setAttribute("pb",goods_page);
+        request.getRequestDispatcher("/goods/goods_list.jsp").forward(request,response);
+
+    }
+
+    private void Search(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("utf-8");
+        String currentPage = request.getParameter("currentPage");
+        String rows = request.getParameter("rows");
+        //如果没有前端发送的请求没有该值，获取的值为null
+        if(currentPage == null || "".equals(currentPage)){
+            currentPage = "1";
+        }
+        if(rows == null || "".equals(rows)){
+            rows = "4";
+        }
+
+        //获取条件查询参数
+        Map<String,String[]> condition = request.getParameterMap();
+        //创建PageBean对象
+        PageBean<Map<String,Object>> pb = new PageBean<>();
+        int _currentPage = Integer.parseInt(currentPage);
+        int _rows = Integer.parseInt(rows);
+        pb.setCurrentPage(_currentPage);
+        pb.setRows(_rows);
+
+        GoodsDao goodsDao = new GoodsDaoImpl();
+        //调用dao查询总记录数
+        int totalCount = goodsDao.findTotalCount(condition);
+        pb.setTotalCount(totalCount);
+        //调用dao查询List集合
+        int start = (_currentPage - 1)*_rows;
+        List<Map<String, Object>> list = goodsDao.findByPage(start,_rows,condition);
+        pb.setList(list);
+        //计算总页码
+        int totalPage = (totalCount % _rows)  == 0 ? totalCount/_rows : (totalCount/_rows) + 1;
+        pb.setTotalPage(totalPage);
+        System.out.println(pb);
+
+        //将PageBean存入request
+        request.setAttribute("pb",pb);
+        request.setAttribute("condition",condition);
+        request.getRequestDispatcher("/goods/goods_list.jsp").forward(request,response);
+
     }
 
 }

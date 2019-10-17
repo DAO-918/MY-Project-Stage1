@@ -16,13 +16,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/goods.css"/>
-<!-- 1. 导入CSS的全局样式 -->
-<link href="css/bootstrap.min.css" rel="stylesheet">
-<!-- 2. jQuery导入，建议使用1.9以上的版本 -->
-<script src="js/jquery-2.1.0.min.js"></script>
-<!-- 3. 导入bootstrap的js文件 -->
-<script src="js/bootstrap.min.js"></script>
-
 <html>
 <head>
     <title>商品展示</title>
@@ -66,13 +59,6 @@
             top:300px;
             overflow: hidden;
         }
-        .pagebean{
-            position: fixed;
-            right: 50px;
-            bottom: 10px;
-            /*top: 100px;*/
-            z-index: 999;
-        }
     </style>
 </head>
 <body>
@@ -89,7 +75,7 @@
         <table align="center" border="0px" cellpadding="5px">
             <tr>
                 <td>
-                    <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/goods_Info?method=ShowListMVC'">显示</button>
+                    <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/goods_Info?method=ShowList'">显示</button>
                 </td>
                 <td>
                     <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/goods_Info?method=toAddPage'">添加</button>
@@ -118,16 +104,16 @@
 <form id="goods_form" action="${pageContext.request.contextPath}/goods_Info?method=Remove" method="post">
     <table align="center" cellpadding="0" cellspacing="5px" border="0px">
 
-<c:if test="${not empty pb.list}">
+<c:if test="${not empty goods_list}">
         <tr>
     <%-- items="stuList" 没有使用EL表达式 导致页面一直没有获取到传过去的list  --%>
-    <c:forEach items="${pb.list}" var="goods" varStatus="s">
+    <c:forEach items="${goods_list}" var="goods" varStatus="s">
 
         <%--如果最后一个td元素不是最后一个添加一个id属性--%>
             <td <c:if test="${s.last==true&&s.count%4!=0}">id="td_last" </c:if> >
                 <div class="td">
                     <div class="td_top">
-                        <span>NO.${goods.g_id}</span><%--${s.count}--%>
+                        <span>NO.${s.count}</span>
                         <span>${goods.g_goods_name}</span>
                     </div>
                     <div class="td_img">
@@ -172,79 +158,8 @@
 </form>
 </div>
 
-<%--有空写下动态的页面栏，只显示3个可选的页面--%>
 </div>
-<div class="pagebean">
-    <c:if test="${not empty pb.list}">
-    <nav aria-label="Page navigation">
 
-        <ul class="pagination">
-            <%--如果已经是第1页，那么页码1前面的那个前一页就应该不可用，因为已经是首页了--%>
-            <%--为什么还可以点击发生了跳转--%>
-            <c:if test="${pb.currentPage == 1}">
-            <li class="disabled">
-                </c:if>
-                <%--否则，前一页可用--%>
-                <c:if test="${pb.currentPage != 1}">
-            <li>
-                </c:if>
-                <%--传递的参数是当前页码-1，显示的记录数传递5--%>
-                <a href="${pageContext.request.contextPath}/goods_Info?method=ShowListMVC&currentPage=${pb.currentPage - 1}&rows=4" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-
-            <%--根据总页数，循环遍历显示页码，从1开始--%>
-            <c:forEach begin="1" end="${pb.totalPage}" var="i" >
-
-
-                <c:if test="${pb.currentPage == i}">
-                    <li class="active"><a href="${pageContext.request.contextPath}/goods_Info?method=ShowListMVC&currentPage=${i}&rows=4">${i}</a></li>
-                </c:if>
-                <c:if test="${pb.currentPage != i}">
-                    <li><a href="${pageContext.request.contextPath}/goods_Info?method=ShowListMVC&currentPage=${i}&rows=4">${i}</a></li>
-                </c:if>
-
-            </c:forEach>
-
-            <%--后一页--%>
-                <c:if test="${pb.totalPage!=pb.currentPage}">
-                    <li>
-                            <%--传递的参数是当前页码+1，显示的记录数传递5--%>
-                        <a href="${pageContext.request.contextPath}/goods_Info?method=ShowListMVC&currentPage=${pb.currentPage + 1}&rows=4" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </c:if>
-<%--                <p>&lt;%&ndash;line-height: 40px如果放在页面栏的后面想要垂直居中时&ndash;%&gt;--%>
-                    <span style="font-size: 16px;margin-left: 5px;">
-                    共${pb.totalCount}条记录，共${pb.totalPage}页
-                    </span>
-<%--                </p>--%>
-        </ul>
-    </nav>
-
-<%--        <nav class="navbar navbar-default">--%>
-            <form class="form-inline" id="search_form" action="${pageContext.request.contextPath}/goods_Info?method=Search" method="post">
-                <div class="form-group">
-                    <label for="exampleInputName1">名称</label>
-                    <input type="text" name="g_goods_name" value="${condition.g_goods_name[0]}" class="form-control" id="exampleInputName1" >
-                </div>
-                <div class="form-group">
-                    <label for="exampleInputName2">内容</label>
-                    <input type="text" name="g_goods_description" value="${condition.g_goods_description[0]}" class="form-control" id="exampleInputName2" >
-                </div>
-
-                <%--<div class="form-group">
-                    <label for="exampleInputEmail3">籍贯</label>
-                    <input type="text" name="jg" value="${condition.jg[0]}" class="form-control" id="exampleInputEmail3"  >
-                </div>--%>
-                <button type="submit" class="btn btn-default">查询</button>
-            </form>
-<%--        </nav>--%>
-
-    </c:if>
-</div>
 </body>
 
 <script>

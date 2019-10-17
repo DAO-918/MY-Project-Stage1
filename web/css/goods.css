@@ -40,7 +40,7 @@ html,body{
     border: 0px;
     float: left;
     margin-top: 110px;
-    margin-left: 350px;
+    margin-left: 250px;
     border: 0px;
 }
 a{
@@ -53,7 +53,7 @@ a:hover{
 }
 .td{
     width: 200px;
-    height: 480px;
+    /*height: 460px;*/
     margin-left: 30px;
     margin-bottom: 30px;
     background-color: #ffeaa3;
@@ -65,6 +65,7 @@ a:hover{
     height: 25px;
     text-align: center;
     padding: 5px;
+    margin-bottom: 5px;
     position: relative;
 }
 .td_top span:first-child{
@@ -85,7 +86,7 @@ a:hover{
     width: 150px;
     height: 150px;
     overflow:hidden;/*img自动裁剪*/
-    margin: 0 auto;
+    margin: 0 auto 5px auto;
     background-color: white;
     border:5px solid #A6A6A6 ;
     border-radius: 10px;
@@ -98,7 +99,7 @@ a:hover{
     max-width: 100%;
 }
 .td_text{
-    width: 138px;
+    /*width: 138px;*/
     height: 138px;
     background-color: cornsilk;
     word-wrap: break-word; /*自动换行*/
@@ -131,6 +132,7 @@ a:hover{
     width: 200px;
     height: 40px;
     position: relative;
+    margin: 5px auto 10px auto;
 }
 .td_bottom_input{
     width: 20px;

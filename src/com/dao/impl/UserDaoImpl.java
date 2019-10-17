@@ -1,5 +1,6 @@
-package com.dao;
+package com.dao.impl;
 
+import com.dao.UserDao;
 import com.domain.User;
 import com.utils.DBUtils;
 
@@ -9,7 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UserDaoImpl implements UserDao{
+public class UserDaoImpl implements UserDao {
     @Override
     public List<User> showUser() {
         return null;

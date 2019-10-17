@@ -1,7 +1,7 @@
 package com.servlet;
 
 import com.dao.UserDao;
-import com.dao.UserDaoImpl;
+import com.dao.impl.UserDaoImpl;
 import com.domain.User;
 
 import javax.servlet.ServletException;
