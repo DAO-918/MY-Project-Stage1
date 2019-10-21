@@ -241,72 +241,115 @@ public class GoodsDaoImpl implements GoodsDao {
     @Override
     public int findTotalCount(Map<String, String[]> condition) {
         //定义模板初始化sql 不做更改的情况下一定会执行成功
-        String sql = "select count(*) totalCount from goods where 1=1 and is_delete='0'";
+        String sql = "select count(*) totalCount from goods where ";
         StringBuilder sb = new StringBuilder(sql);
         //====与下面的代码相同的部分=====
         //遍历map
         Set<String> keySet = condition.keySet();
         //定义参数的集合
         List<Object> params = new ArrayList<Object>();
+        int count = 0;
         for (String key : keySet) {
             //排除分页条件参数
             if("currentPage".equals(key) || "rows".equals(key) || "method".equals(key)){
                 continue;
             }
             //获取value
-            String value = condition.get(key)[0];
-            //判断value是否有值
-            if(value != null && !"".equals(value)){
-                //有值
-                sb.append(" and "+key+" like ? ");
-                params.add("%"+value+"%");//?条件的值
+            String[] value = condition.get(key);
+            for (int i=0;i<value.length;i++) {
+                //判断value是否有值
+                if (value[i] == null || "".equals(value[i]) || " ".equals(value[i])) {
+                    continue;
+                }else {
+                    //有值
+                    if ("g_goods_description".equals(key)) {
+                        if (count==0){//为什么要这样写：因为sql语句里面没有任何条件时，or 和 and 直接放在where后面会导致数据库报错--sql语句不规范
+                            //可以使用插入，可以使用插入，但StringBulider缓存中
+                            sb.append(" " + key + " like ? ");
+                        }else {
+                            sb.append(" or " + key + " like ? ");
+                        }
+                        params.add("%" + value[i] + "%");//？条件的值
+                        count++;
+                    } else {
+                        if (count==0){
+                            sb.append(" " + key + " like ? ");
+                        }else {
+                            sb.append(" and " + key + " like ? ");
+                        }
+                        params.add("%" + value[i] + "%");//？条件的值
+                        count++;
+                    }
+                }
             }
         }
+        sb.append(" and is_delete='0'");
         //=========
         System.out.println(sb.toString());
         System.out.println(params);
 
         //int 是否结果一样
-        Long count = 0L;
+        Long count_L = 0L;
         List<Map<String, Object>> datas = new ArrayList<>();
 
         //使用DBUtils.executeQuery动态生成SQL语句并查询
         //只查询删除状态为0的，没有逻辑删除过的记录
-        //select count(*) totalCount from goods where 1=1 and flag='0' and xx like '%```%' and........
+        //select count(*) totalCount from goods where flag='0' and xx like '%```%' and........
         try {
             datas = DBUtils.executeQuery(sb.toString(),params.toArray());
             //获得第一个map的value值
-            count = (Long) datas.get(0).get("totalCount");
+            count_L = (Long) datas.get(0).get("totalCount");
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return count.intValue();
+        return count_L.intValue();
     }
 
     //查询符合条件的记录的分页集合
     @Override
     public List<Map<String, Object>> findByPage(int start, int rows, Map<String, String[]> condition) {
-        String sql = "select * from goods where 1=1 and is_delete='0'";
+        String sql = "select * from goods where ";
         StringBuilder sb = new StringBuilder(sql);
         //=========
         //遍历map
         Set<String> keySet = condition.keySet();
         //定义参数的集合
         List<Object> params = new ArrayList<Object>();
+        int count = 0;
         for (String key : keySet) {
             //排除分页条件参数
             if("currentPage".equals(key) || "rows".equals(key) ||"method".equals(key)){
                 continue;
             }
             //获取value
-            String value = condition.get(key)[0];
-            //判断value是否有值
-            if(value != null && !"".equals(value)){
-                //有值
-                sb.append(" and "+key+" like ? ");
-                params.add("%"+value+"%");//？条件的值
+            String[] value = condition.get(key);
+            for (int i=0;i<value.length;i++) {
+                //判断value是否有值
+                if (value[i] == null || "".equals(value[i]) || " ".equals(value[i])) {
+                    continue;
+                }else {
+                    //有值
+                    if ("g_goods_description".equals(key)) {
+                        if (count==0){
+                            sb.append(" " + key + " like ? ");
+                        }else {
+                            sb.append(" or " + key + " like ? ");
+                        }
+                        params.add("%" + value[i] + "%");//？条件的值
+                        count++;
+                    } else {
+                        if (count==0){
+                            sb.append(" " + key + " like ? ");
+                        }else {
+                            sb.append(" and " + key + " like ? ");
+                        }
+                        params.add("%" + value[i] + "%");//？条件的值
+                        count++;
+                    }
+                }
             }
         }
+        sb.append(" and is_delete='0'");
         //=========
         //添加分页查询
         sb.append(" limit ?,? ");
@@ -318,7 +361,7 @@ public class GoodsDaoImpl implements GoodsDao {
 
         List<Map<String, Object>> datas = new ArrayList<>();
         //只查询删除状态为0的，没有逻辑删除过的记录
-        //select count(*) totalCount from goods where 1=1 and flag='0' and xx like '%```%' and........
+        //select count(*) totalCount from goods and flag='0' and xx like '%```%' and........
         try {
             datas = DBUtils.executeQuery(sb.toString(),params.toArray());
         } catch (SQLException e) {

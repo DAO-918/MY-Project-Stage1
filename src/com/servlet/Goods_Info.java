@@ -19,9 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @WebServlet("/goods_Info")
 public class Goods_Info extends HttpServlet {
@@ -261,7 +259,23 @@ public class Goods_Info extends HttpServlet {
         }
 
         //获取条件查询参数
-        Map<String,String[]> condition = request.getParameterMap();
+        Map<String,String[]> condition_original = request.getParameterMap();
+        System.out.println(condition_original.toString());
+        Map<String,String[]> condition = new TreeMap<>();
+        Set<String> set = condition_original.keySet();
+        for (String key : set) {
+            String[] strings_original = condition_original.get(key);
+            String[] strings = new String[strings_original.length];
+            int i = 0;
+            for (String string : strings_original) {
+                strings[i++] = new String(string.getBytes("iso-8859-1"),"utf-8");
+            }
+            condition.put(key,strings);
+        }
+        System.out.println(condition);
+        condition = newConditionMap(condition);
+        System.out.println(condition);
+
         //创建PageBean对象
         PageBean<Map<String,Object>> pb = new PageBean<>();
         int _currentPage = Integer.parseInt(currentPage);
@@ -278,7 +292,7 @@ public class Goods_Info extends HttpServlet {
         List<Map<String, Object>> list = goodsDao.findByPage(start,_rows,condition);
         pb.setList(list);
         //计算总页码
-        int totalPage = (totalCount % _rows)  == 0 ? totalCount/_rows : (totalCount/_rows) + 1;
+        int totalPage = (totalCount%_rows)==0?totalCount/_rows:(totalCount/_rows)+1;
         pb.setTotalPage(totalPage);
         System.out.println(pb);
 
@@ -287,6 +301,42 @@ public class Goods_Info extends HttpServlet {
         request.setAttribute("condition",condition);
         request.getRequestDispatcher("/goods/goods_list.jsp").forward(request,response);
 
+    }
+
+    public static Map<String,String[]> newConditionMap(Map<String,String[]> condition){
+        Set<String> set = condition.keySet();
+        int i = 0;
+        for (String key : set) {
+            //if ("g_goods_description".equals(key)){
+            //    continue;
+            //}
+            String[] str_arr = condition.get(key);
+            if ("".equals(str_arr[0].trim())){
+                i++;
+                continue;
+            }//当跳转到method时，创建temp处也会出错//java.lang.ArrayIndexOutOfBoundsException: 1
+            //i的原因？？因为跳过了i的值没有改变？
+            List<String> list = new ArrayList<>();
+            for (int j = 0;j<str_arr.length;j++){
+                String[] temp = str_arr[j].replaceAll("[^0-9a-zA-Z\u4e00-\u9fa5]", " ").split(" ");
+                for (String s : temp) {
+                    if ("".equals(s)||" ".equals(s)){
+
+                    }else {
+                        list.add(s);
+                    }
+                }
+            }
+            //可不可以直接把list的地址给字符串数组？？？
+            str_arr = new String[list.size()];
+            for (int k=0;k<list.size();k++){
+                str_arr[k]=list.get(k);
+            }
+            condition.put(key,str_arr);
+            i++;
+        }
+
+        return condition;
     }
 
 }

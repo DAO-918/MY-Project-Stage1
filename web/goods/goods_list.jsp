@@ -229,6 +229,9 @@
                 <div class="form-group">
                     <label for="exampleInputName1">名称</label>
                     <input type="text" name="g_goods_name" value="${condition.g_goods_name[0]}" class="form-control" id="exampleInputName1" >
+                    <%--${condition.g_goods_name是一个地址--%>
+                    <%--Map<String,String[]> condition = request.getParameterMap();
+                     condition.g_goods_name[0]：condition变量名称  g_goods_name键名？ [0]键值数组的第一个值--%>
                 </div>
                 <div class="form-group">
                     <label for="exampleInputName2">内容</label>

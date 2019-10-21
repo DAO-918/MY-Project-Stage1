@@ -125,7 +125,7 @@ public class DBUtils {
         ResultSet resultSet = null;
 
         try {
-            /**获取数据库连接池中的连接**/
+            /**获取数据库连接**/
             connection = getConnection();
             preparedStatement = connection.prepareStatement(sql);
             if (bindArgs != null) {
@@ -142,7 +142,6 @@ public class DBUtils {
             resultSet = preparedStatement.executeQuery();
             //将每一行转换成map，map组合在一起形成list
             datas =getDatas(resultSet);
-            System.out.println();
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -181,7 +180,7 @@ public class DBUtils {
         }
         System.out.println("成功查询到了" + datas.size() + "行数据");
         for (int i = 0; i < datas.size(); i++) {
-            Map<String, Object> map = datas.get(i);
+            Map<String, Object> map = datas.get(i);//datas是list集合可以通过下标获取元素
             System.out.println("第" + (i + 1) + "行：" + map);
         }
         return datas;
